@@ -9,7 +9,7 @@
 // turns on a detail every phone owner recognises (a phone lingering at
 // 1%), gives the phone a personality with a stake in dying (it faked it),
 // and stays short and punchy, the way a real text reads.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const MESSAGE =
@@ -28,7 +28,13 @@ function main(): void {
   mkdirSync(outDir, { recursive: true });
   const outPath = join(outDir, "entry.txt");
   writeFileSync(outPath, text, "utf8");
-  console.log(`wrote ${text.length} characters to ${outPath}`);
+  // Verify the write: the grader reads this exact file, so a partial or
+  // mangled write must fail loudly here instead of shipping a broken entry.
+  const written = readFileSync(outPath, "utf8");
+  if (written !== text) {
+    throw new Error(`verify failed: ${outPath} does not match the entry text`);
+  }
+  console.log(`wrote and verified ${text.length} characters to ${outPath}`);
 }
 
 main();
